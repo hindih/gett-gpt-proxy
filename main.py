@@ -30,7 +30,7 @@ async def authenticate():
             logger.info(f"Headers: {AUTH_HEADERS}")
             logger.info(f"Payload: {AUTH_PAYLOAD}")
 
-            response = await client.post(AUTH_URL, json=AUTH_PAYLOAD, headers=AUTH_HEADERS)
+            response = await client.post(AUTH_URL, data=AUTH_PAYLOAD, headers=AUTH_HEADERS)
 
             logger.info(f"Response Status: {response.status_code}")
             logger.info(f"Response Body: {response.text}")
