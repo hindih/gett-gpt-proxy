@@ -1,17 +1,17 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 import httpx
 import os
 
 app = FastAPI()
 
-AUTH_URL = os.getenv("AUTH_URL", "https://api.example.com/auth/token")
+AUTH_URL = os.getenv("AUTH_URL")
 AUTH_PAYLOAD = {
     "client_id": os.getenv("CLIENT_ID"),
     "client_secret": os.getenv("CLIENT_SECRET"),
     "grant_type": "client_credentials",
-    "scope": os.getenv("SCOPE", "demand_partner")  # Replace default with real scope if needed
+    "scope": os.getenv("SCOPE", "cab:book")
 }
-
 AUTH_HEADERS = {
     "Content-Type": "application/json"
 }
@@ -19,7 +19,11 @@ AUTH_HEADERS = {
 @app.post("/auth")
 async def authenticate():
     async with httpx.AsyncClient() as client:
-        response = await client.post(AUTH_URL, json=AUTH_PAYLOAD, headers=AUTH_HEADERS)
-        if response.status_code != 200:
-            raise HTTPException(status_code=401, detail="Authentication failed")
-        return response.json()
+        try:
+            response = await client.post(AUTH_URL, json=AUTH_PAYLOAD, headers=AUTH_HEADERS)
+            response.raise_for_status()
+            return JSONResponse(content=response.json())
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
