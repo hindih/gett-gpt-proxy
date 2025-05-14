@@ -8,8 +8,10 @@ AUTH_URL = os.getenv("AUTH_URL", "https://api.example.com/auth/token")
 AUTH_PAYLOAD = {
     "client_id": os.getenv("CLIENT_ID"),
     "client_secret": os.getenv("CLIENT_SECRET"),
-    "grant_type": "client_credentials"
+    "grant_type": "client_credentials",
+    "scope": os.getenv("SCOPE", "demand_partner")  # Replace default with real scope if needed
 }
+
 AUTH_HEADERS = {
     "Content-Type": "application/json"
 }
