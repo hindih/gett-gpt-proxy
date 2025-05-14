@@ -171,3 +171,45 @@ async def order_status(order_id: str, request: Request):
         finally:
             logger.info("====== ORDER STATUS REQUEST END ======")
 
+@app.post("/cancel_order/{order_id}")
+async def cancel_order(order_id: str, request: Request):
+    logger.info("====== CANCEL ORDER REQUEST START ======")
+    logger.info(f"Incoming request to cancel order: {order_id}")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            # Step 1: Get bearer token
+            auth_response = await client.post(f"{request.base_url}auth")
+            logger.info(f"Auth response status: {auth_response.status_code}")
+            logger.info(f"Auth response body: {auth_response.text}")
+
+            if auth_response.status_code != 200:
+                raise HTTPException(status_code=500, detail="Failed to authenticate with Gett")
+
+            access_token = auth_response.json().get("access_token")
+            if not access_token:
+                raise HTTPException(status_code=500, detail="Missing access token in auth response")
+
+            # Step 2: Cancel order via Gett
+            cancel_url = f"https://api.sandbox.gett.com/v1/private/orders/cancel/{order_id}?partner_id={PARTNER_ID}"
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+
+            logger.info(f"Sending cancel request to Gett: {cancel_url}")
+            response = await client.post(cancel_url, headers=headers)
+            logger.info(f"Cancel response status: {response.status_code}")
+            logger.info(f"Cancel response body: {response.text}")
+
+            response.raise_for_status()
+            return JSONResponse(status_code=response.status_code, content=response.json())
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error during cancellation: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+        except Exception as e:
+            logger.error(f"Unexpected error during cancellation: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            logger.info("====== CANCEL ORDER REQUEST END ======")
