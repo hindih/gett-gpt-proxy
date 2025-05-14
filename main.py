@@ -148,7 +148,7 @@ async def order_status(order_id: str, request: Request):
                 raise HTTPException(status_code=500, detail="Missing access token in auth response")
 
             # Step 2: Call Gett API for order status
-            url = f"https://api.sandbox.gett.com/v1/private/orders/{order_id}"
+            url = f"https://api.sandbox.gett.com/v1/private/orders/{order_id}?partner_id={PARTNER_ID}"
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
