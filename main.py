@@ -18,7 +18,7 @@ AUTH_PAYLOAD = {
     "scope": os.getenv("SCOPE", "demand_partner")
 }
 AUTH_HEADERS = {
-    "Content-Type": "application/json"
+    "Content-Type": "application/x-www-form-urlencoded"
 }
 
 @app.post("/auth")
