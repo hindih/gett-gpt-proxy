@@ -127,3 +127,47 @@ async def book_ride(request: Request):
             return JSONResponse(status_code=response.status_code, content=response.json())
         except Exception:
             return JSONResponse(status_code=500, content={"error": "Invalid response from Gett"})
+
+@app.get("/order_status/{order_id}")
+async def order_status(order_id: str, request: Request):
+    logger.info("====== ORDER STATUS REQUEST START ======")
+    logger.info(f"Incoming request to check status of order: {order_id}")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            # Step 1: Get bearer token
+            auth_response = await client.post(f"{request.base_url}auth")
+            logger.info(f"Auth response status: {auth_response.status_code}")
+            logger.info(f"Auth response body: {auth_response.text}")
+
+            if auth_response.status_code != 200:
+                raise HTTPException(status_code=500, detail="Failed to authenticate with Gett")
+
+            access_token = auth_response.json().get("access_token")
+            if not access_token:
+                raise HTTPException(status_code=500, detail="Missing access token in auth response")
+
+            # Step 2: Call Gett API for order status
+            url = f"https://api.sandbox.gett.com/v1/private/orders/{order_id}"
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+
+            logger.info(f"Sending GET request to Gett API: {url}")
+            response = await client.get(url, headers=headers)
+            logger.info(f"Gett API response status: {response.status_code}")
+            logger.info(f"Gett API response body: {response.text}")
+
+            response.raise_for_status()
+            return JSONResponse(status_code=response.status_code, content=response.json())
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error from Gett API: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+        except Exception as e:
+            logger.error(f"Unexpected error during order status check: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            logger.info("====== ORDER STATUS REQUEST END ======")
+
