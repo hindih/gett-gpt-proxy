@@ -15,7 +15,7 @@ AUTH_PAYLOAD = {
     "client_id": os.getenv("CLIENT_ID"),
     "client_secret": os.getenv("CLIENT_SECRET"),
     "grant_type": "client_credentials",
-    "scope": os.getenv("SCOPE", "cab:book")
+    "scope": os.getenv("SCOPE", "demand_partner")
 }
 AUTH_HEADERS = {
     "Content-Type": "application/json"
