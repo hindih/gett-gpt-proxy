@@ -202,8 +202,10 @@ async def cancel_order(order_id: str, request: Request):
             logger.info(f"Cancel response status: {response.status_code}")
             logger.info(f"Cancel response body: {response.text}")
 
-            response.raise_for_status()
-            return JSONResponse(status_code=response.status_code, content=response.json())
+            if response.status_code == 204:
+                return JSONResponse(status_code=200, content={"status": "cancelled"})
+            else:
+                return JSONResponse(status_code=response.status_code, content=response.json())
 
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error during cancellation: {e}")
